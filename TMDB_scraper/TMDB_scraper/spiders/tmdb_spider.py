@@ -1,6 +1,5 @@
 # to run 
 # scrapy crawl tmdb_spider -o results.csv
-# scrapy crawl tmdb_spider -o testing.csv
 
 import scrapy
 
@@ -22,22 +21,29 @@ class TmdbSpider(scrapy.Spider):
         yield scrapy.Request(next_page, callback=self.parse_full_credits)
 
     def parse_full_credits(self, response):
-            """
-            insert docstring
-            """
+        """
+        Parsing method that navigates from the Cast & Crew page to
+        individual pages for each actor in the show. Takes arguments
+        self and a response object. Does not return any data.
+        """
 
-            actors = response.css("ol.people.credits a::attr(href)").getall()
+        actors = response.css("ol.people.credits a::attr(href)").getall()
           
-            # list comprehension to get page links of actors only
-            actors = [url for url in actors if url[:4] == "/per"]
-            self.actors_list.extend(actors)
+        # list comprehension to get page links of actors only
+        actors = [url for url in actors if url[:4] == "/per"]
+        self.actors_list.extend(actors)
             
-            # generator expression to navigate to actor pages
-            yield from (scrapy.Request(self.base_url[0] + url, callback=self.parse_actor_page) for url in actors)
+        # generator expression to navigate to actor pages
+        yield from (scrapy.Request(self.base_url[0] + url, callback=self.parse_actor_page) for url in actors)
 
     def parse_actor_page(self, response):
         """
-        insert docstring
+        Parsing method that yields a dictionary with two key-value pairs:
+        actor for the actor name and movie_or_TV_name with the title
+        of the shows or movies they have worked on from the actor's TMDB
+        page.
+
+        Takes arguments self and a response object.
         """
         # extract names and titles
         actor_name = response.css("h2.title a::text").get()
