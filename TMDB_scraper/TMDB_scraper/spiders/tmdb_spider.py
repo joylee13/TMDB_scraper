@@ -8,7 +8,6 @@ class TmdbSpider(scrapy.Spider):
     
     start_urls = ['https://www.themoviedb.org/tv/66573-the-good-place']
     base_url = ['https://www.themoviedb.org']
-    actors_list = [] 
 
     def parse(self, response):
         """
@@ -26,12 +25,10 @@ class TmdbSpider(scrapy.Spider):
         individual pages for each actor in the show. Takes arguments
         self and a response object. Does not return any data.
         """
-
         actors = response.css("ol.people.credits a::attr(href)").getall()
           
         # list comprehension to get page links of actors only
         actors = [url for url in actors if url[:4] == "/per"]
-        self.actors_list.extend(actors)
             
         # generator expression to navigate to actor pages
         yield from (scrapy.Request(self.base_url[0] + url, callback=self.parse_actor_page) for url in actors)
